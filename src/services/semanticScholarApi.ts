@@ -38,18 +38,34 @@ export class SemanticScholarService {
     }
     
     const data = await response.json();
-    return data.data?.map((item: any) => item.citedPaper) || [];
+    const citations = data.data?.map((item: any) => item.citedPaper) || [];
+    
+    // Filter out null/undefined citations and those without proper structure
+    return citations.filter((citation: any) => 
+      citation && 
+      citation.paperId && 
+      citation.authors && 
+      Array.isArray(citation.authors)
+    );
   }
 
   static isSelfCitation(paper: Paper, citation: Citation, targetAuthorId: string): boolean {
+    // Check if citation exists and has authors
+    if (!citation || !citation.authors || !Array.isArray(citation.authors)) {
+      return false;
+    }
+
     // Check if the citation is by the same author
     const targetAuthor = paper.authors.find(author => author.authorId === targetAuthorId);
     if (!targetAuthor) return false;
 
     // Check if any author of the citation matches the target author
     return citation.authors.some(author => 
-      author.authorId === targetAuthorId || 
-      author.name?.toLowerCase() === targetAuthor.name?.toLowerCase()
+      author && (
+        author.authorId === targetAuthorId || 
+        (author.name && targetAuthor.name && 
+         author.name.toLowerCase() === targetAuthor.name.toLowerCase())
+      )
     );
   }
 
