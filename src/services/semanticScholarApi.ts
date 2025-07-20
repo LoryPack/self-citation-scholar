@@ -29,24 +29,35 @@ export class SemanticScholarService {
   }
 
   static async getPaperCitations(paperId: string): Promise<Citation[]> {
+    console.log('Fetching citations for paper ID:', paperId);
+    
     const response = await fetch(
       `${BASE_URL}/paper/${paperId}/citations?fields=paperId,title,year,authors,venue&limit=1000`
     );
     
+    console.log('Citation API response status:', response.status, response.statusText);
+    
     if (!response.ok) {
+      console.log('Citation API error for paper', paperId, ':', response.status);
       return [];
     }
     
     const data = await response.json();
+    console.log('Raw citation data for paper', paperId, ':', data);
+    
     const citations = data.data?.map((item: any) => item.citedPaper) || [];
+    console.log('Processed citations:', citations.length, citations);
     
     // Filter out null/undefined citations and those without proper structure
-    return citations.filter((citation: any) => 
+    const validCitations = citations.filter((citation: any) => 
       citation && 
       citation.paperId && 
       citation.authors && 
       Array.isArray(citation.authors)
     );
+    
+    console.log('Valid citations after filtering:', validCitations.length, validCitations);
+    return validCitations;
   }
 
   static isSelfCitation(paper: Paper, citation: Citation, targetAuthorId: string): boolean {
