@@ -74,16 +74,25 @@ export class SemanticScholarService {
     papers: Paper[];
     metrics: SelfCitationMetrics;
   }> {
+    console.log('Starting analysis for author:', authorId);
     const author = await this.getAuthor(authorId);
+    console.log('Author fetched:', author);
+    
     const papers = await this.getAuthorPapers(authorId);
+    console.log('Papers fetched:', papers.length, papers);
     
     // Analyze self-citations for each paper
     const analyzedPapers = await Promise.all(
       papers.map(async (paper) => {
+        console.log('Analyzing paper:', paper.title);
         const citations = await this.getPaperCitations(paper.paperId);
+        console.log('Citations for paper:', citations.length, citations);
+        
         const selfCitations = citations.filter(citation => 
           this.isSelfCitation(paper, citation, authorId)
         );
+        
+        console.log('Self-citations found:', selfCitations.length, selfCitations);
         
         return {
           ...paper,
@@ -95,6 +104,7 @@ export class SemanticScholarService {
 
     // Calculate metrics
     const metrics = this.calculateMetrics(analyzedPapers);
+    console.log('Final metrics:', metrics);
 
     return {
       author,
