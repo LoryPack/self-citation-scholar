@@ -15,6 +15,7 @@ export const SelfCitationAnalyzer = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [metrics, setMetrics] = useState<SelfCitationMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentAuthorId, setCurrentAuthorId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSearch = async (authorId: string) => {
@@ -23,6 +24,7 @@ export const SelfCitationAnalyzer = () => {
     setAuthor(null);
     setPapers([]);
     setMetrics(null);
+    setCurrentAuthorId(authorId);
 
     try {
       toast({
@@ -98,7 +100,7 @@ export const SelfCitationAnalyzer = () => {
             <MetricsOverview metrics={metrics} />
 
             {/* Papers List */}
-            <PapersList papers={papers} />
+            {currentAuthorId && <PapersList papers={papers} authorId={currentAuthorId} />}
           </div>
         )}
 

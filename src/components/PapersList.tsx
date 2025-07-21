@@ -2,21 +2,24 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   ExternalLink, 
   Quote, 
   Calendar, 
   MapPin,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  FileText
 } from 'lucide-react';
 import { Paper } from '@/types/semanticScholar';
 
 interface PapersListProps {
   papers: Paper[];
+  authorId: string;
 }
 
-export const PapersList = ({ papers }: PapersListProps) => {
+export const PapersList = ({ papers, authorId }: PapersListProps) => {
   const [expandedPaper, setExpandedPaper] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'year' | 'selfCitations' | 'totalCitations'>('selfCitations');
 
@@ -35,6 +38,23 @@ export const PapersList = ({ papers }: PapersListProps) => {
 
   const togglePaper = (paperId: string) => {
     setExpandedPaper(expandedPaper === paperId ? null : paperId);
+  };
+
+  const isSelfCitation = (paper: Paper, citation: any) => {
+    if (!citation || !citation.authors || !Array.isArray(citation.authors)) {
+      return false;
+    }
+
+    const targetAuthor = paper.authors.find(author => author.authorId === authorId);
+    if (!targetAuthor) return false;
+
+    return citation.authors.some((author: any) => 
+      author && (
+        author.authorId === authorId || 
+        (author.name && targetAuthor.name && 
+         author.name.toLowerCase() === targetAuthor.name.toLowerCase())
+      )
+    );
   };
 
   return (
@@ -186,6 +206,96 @@ export const PapersList = ({ papers }: PapersListProps) => {
                       </p>
                     </div>
                   </div>
+
+                  {paper.citations && paper.citations.length > 0 && (
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="citations">
+                        <AccordionTrigger className="text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            View Citing Papers ({paper.citations.length})
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-3 max-h-60 overflow-y-auto">
+                            {paper.citations.map((citation: any, index: number) => {
+                              const isOwnCitation = isSelfCitation(paper, citation);
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`p-3 rounded border ${
+                                    isOwnCitation 
+                                      ? 'bg-citation-gold/5 border-citation-gold/20' 
+                                      : 'bg-muted/20 border-border'
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                      <h6 className="text-sm font-medium text-foreground mb-1 line-clamp-2">
+                                        {citation.title || 'Untitled'}
+                                      </h6>
+                                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-2">
+                                        {citation.year && (
+                                          <span className="flex items-center gap-1">
+                                            <Calendar className="h-3 w-3" />
+                                            {citation.year}
+                                          </span>
+                                        )}
+                                        {citation.venue && (
+                                          <span className="flex items-center gap-1">
+                                            <MapPin className="h-3 w-3" />
+                                            {citation.venue}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {citation.authors && citation.authors.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                          {citation.authors.slice(0, 3).map((author: any, authorIndex: number) => (
+                                            <Badge 
+                                              key={authorIndex} 
+                                              variant="outline" 
+                                              className="text-xs px-1 py-0"
+                                            >
+                                              {author.name}
+                                            </Badge>
+                                          ))}
+                                          {citation.authors.length > 3 && (
+                                            <Badge variant="outline" className="text-xs px-1 py-0">
+                                              +{citation.authors.length - 3} more
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {isOwnCitation && (
+                                        <Badge 
+                                          variant="secondary" 
+                                          className="bg-citation-gold/10 text-citation-gold border-citation-gold/20 text-xs"
+                                        >
+                                          Self-Citation
+                                        </Badge>
+                                      )}
+                                      {citation.url && (
+                                        <a
+                                          href={citation.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-academic hover:text-academic/80"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  )}
                 </div>
               )}
             </div>
