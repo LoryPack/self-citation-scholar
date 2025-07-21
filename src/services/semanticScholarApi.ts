@@ -45,7 +45,7 @@ export class SemanticScholarService {
     const data = await response.json();
     console.log('Raw citation data for paper', paperId, ':', data);
     
-    const citations = data.data?.map((item: any) => item.citedPaper) || [];
+    const citations = data.data?.map((item: any) => item.citingPaper) || [];
     console.log('Processed citations:', citations.length, citations);
     
     // Filter out null/undefined citations and those without proper structure
