@@ -28,7 +28,7 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
       case 'year':
         return (b.year || 0) - (a.year || 0);
       case 'selfCitations':
-        return (b.selfCitationCount || 0) - (a.selfCitationCount || 0);
+        return (b.method1SelfCitationCount || 0) - (a.method1SelfCitationCount || 0);
       case 'totalCitations':
         return b.citationCount - a.citationCount;
       default:
@@ -40,7 +40,7 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
     setExpandedPaper(expandedPaper === paperId ? null : paperId);
   };
 
-  const isSelfCitation = (paper: Paper, citation: any) => {
+  const isMethod1SelfCitation = (paper: Paper, citation: any) => {
     if (!citation || !citation.authors || !Array.isArray(citation.authors)) {
       return false;
     }
@@ -52,9 +52,27 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
       author && (
         author.authorId === authorId || 
         (author.name && targetAuthor.name && 
-         author.name.toLowerCase() === targetAuthor.name.toLowerCase())
+         author.name.toLowerCase().trim() === targetAuthor.name.toLowerCase().trim())
       )
     );
+  };
+
+  const isMethod2SelfCitation = (paper: Paper, citation: any) => {
+    if (!citation || !citation.authors || !Array.isArray(citation.authors) ||
+        !paper.authors || !Array.isArray(paper.authors)) {
+      return false;
+    }
+
+    return paper.authors.some(paperAuthor => 
+      paperAuthor.name && citation.authors.some((citationAuthor: any) => 
+        citationAuthor.name && 
+        paperAuthor.name.toLowerCase().trim() === citationAuthor.name.toLowerCase().trim()
+      )
+    );
+  };
+
+  const getAuthorUrl = (authorId: string) => {
+    return `https://www.semanticscholar.org/author/${authorId}`;
   };
 
   return (
@@ -116,12 +134,18 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <Badge 
                       variant="secondary" 
                       className="bg-citation-gold/10 text-citation-gold border-citation-gold/20"
                     >
-                      {paper.selfCitationCount || 0} Self-Citations
+                      Method 1: {paper.method1SelfCitationCount || 0}
+                    </Badge>
+                    <Badge 
+                      variant="secondary" 
+                      className="bg-scholar-blue/10 text-scholar-blue border-scholar-blue/20"
+                    >
+                      Method 2: {paper.method2SelfCitationCount || 0}
                     </Badge>
                     <Badge variant="outline">
                       {paper.citationCount} Total Citations
@@ -172,40 +196,64 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                     </div>
                   )}
                   
-                  <div>
-                    <h5 className="font-medium text-foreground mb-2">Authors</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {paper.authors.map((author, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {author.name}
-                        </Badge>
-                      ))}
+                    <div>
+                      <h5 className="font-medium text-foreground mb-2">Authors</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {paper.authors.map((author, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {author.authorId ? (
+                              <a 
+                                href={getAuthorUrl(author.authorId)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-academic transition-colors"
+                              >
+                                {author.name}
+                              </a>
+                            ) : (
+                              author.name
+                            )}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-foreground">Citations:</span>
-                      <p className="text-muted-foreground">{paper.citationCount}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-foreground">Total Citations:</span>
+                        <p className="text-muted-foreground">{paper.citationCount}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Method 1 Self-Citations:</span>
+                        <p className="text-citation-gold font-medium">{paper.method1SelfCitationCount || 0}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Method 2 Self-Citations:</span>
+                        <p className="text-scholar-blue font-medium">{paper.method2SelfCitationCount || 0}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">References:</span>
+                        <p className="text-muted-foreground">{paper.referenceCount}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Method 1 Rate:</span>
+                        <p className="text-muted-foreground">
+                          {paper.citationCount > 0 
+                            ? `${(((paper.method1SelfCitationCount || 0) / paper.citationCount) * 100).toFixed(1)}%`
+                            : '0%'
+                          }
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-foreground">Method 2 Rate:</span>
+                        <p className="text-muted-foreground">
+                          {paper.citationCount > 0 
+                            ? `${(((paper.method2SelfCitationCount || 0) / paper.citationCount) * 100).toFixed(1)}%`
+                            : '0%'
+                          }
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-medium text-foreground">Self-Citations:</span>
-                      <p className="text-citation-gold font-medium">{paper.selfCitationCount || 0}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">References:</span>
-                      <p className="text-muted-foreground">{paper.referenceCount}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">Self-Citation Rate:</span>
-                      <p className="text-muted-foreground">
-                        {paper.citationCount > 0 
-                          ? `${(((paper.selfCitationCount || 0) / paper.citationCount) * 100).toFixed(1)}%`
-                          : '0%'
-                        }
-                      </p>
-                    </div>
-                  </div>
 
                   {paper.citations && paper.citations.length > 0 && (
                     <Accordion type="single" collapsible className="w-full">
@@ -219,12 +267,14 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                         <AccordionContent>
                           <div className="space-y-3 max-h-60 overflow-y-auto">
                             {paper.citations.map((citation: any, index: number) => {
-                              const isOwnCitation = isSelfCitation(paper, citation);
+                              const isMethod1SelfCite = isMethod1SelfCitation(paper, citation);
+                              const isMethod2SelfCite = isMethod2SelfCitation(paper, citation);
+                              
                               return (
                                 <div 
                                   key={index} 
                                   className={`p-3 rounded border ${
-                                    isOwnCitation 
+                                    isMethod1SelfCite || isMethod2SelfCite
                                       ? 'bg-citation-gold/5 border-citation-gold/20' 
                                       : 'bg-muted/20 border-border'
                                   }`}
@@ -256,7 +306,18 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                                               variant="outline" 
                                               className="text-xs px-1 py-0"
                                             >
-                                              {author.name}
+                                              {author.authorId ? (
+                                                <a 
+                                                  href={getAuthorUrl(author.authorId)}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="hover:text-academic transition-colors"
+                                                >
+                                                  {author.name}
+                                                </a>
+                                              ) : (
+                                                author.name
+                                              )}
                                             </Badge>
                                           ))}
                                           {citation.authors.length > 3 && (
@@ -268,12 +329,20 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                                       )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      {isOwnCitation && (
+                                      {isMethod1SelfCite && (
                                         <Badge 
                                           variant="secondary" 
                                           className="bg-citation-gold/10 text-citation-gold border-citation-gold/20 text-xs"
                                         >
-                                          Self-Citation
+                                          Method 1
+                                        </Badge>
+                                      )}
+                                      {isMethod2SelfCite && (
+                                        <Badge 
+                                          variant="secondary" 
+                                          className="bg-scholar-blue/10 text-scholar-blue border-scholar-blue/20 text-xs"
+                                        >
+                                          Method 2
                                         </Badge>
                                       )}
                                       {citation.url && (
