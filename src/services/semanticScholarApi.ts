@@ -37,17 +37,26 @@ export class SemanticScholarService {
   }
 
   static async getAuthorPapers(authorId: string): Promise<Paper[]> {
-    const url = `${BASE_URL}/author/${authorId}/papers?fields=paperId,title,year,authors,venue,citationCount,referenceCount,fieldsOfStudy,url,abstract&limit=100`;
+    const limit = 100;
+    let offset = 0;
+    let allPapers: Paper[] = [];
     console.log(`[getAuthorPapers] Fetching papers for author: ${authorId}`);
-    const response = await fetchWithRetry(url);
-    console.log(`[getAuthorPapers] Response status: ${response.status}`);
-    if (!response.ok) {
-      console.error(`[getAuthorPapers] Error fetching papers for author: ${authorId}, status: ${response.status}`);
-      throw new Error('Failed to fetch papers');
+    while (true) {
+      const url = `${BASE_URL}/author/${authorId}/papers?fields=paperId,title,year,authors,venue,citationCount,referenceCount,fieldsOfStudy,url,abstract&limit=${limit}&offset=${offset}`;
+      const response = await fetchWithRetry(url);
+      console.log(`[getAuthorPapers] Response status: ${response.status} (offset: ${offset})`);
+      if (!response.ok) {
+        console.error(`[getAuthorPapers] Error fetching papers for author: ${authorId}, status: ${response.status}`);
+        throw new Error('Failed to fetch papers');
+      }
+      const data = await response.json();
+      const papers = data.data || [];
+      allPapers = allPapers.concat(papers);
+      console.log(`[getAuthorPapers] Papers fetched this page: ${papers.length}, total so far: ${allPapers.length}`);
+      if (papers.length < limit) break; // no more pages
+      offset += limit;
     }
-    const data = await response.json();
-    console.log(`[getAuthorPapers] Papers fetched: ${data.data?.length || 0}`);
-    return data.data || [];
+    return allPapers;
   }
 
   static async getPaperCitations(paperId: string): Promise<Citation[]> {
