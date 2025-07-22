@@ -150,7 +150,7 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
       {/* Comparison Insights */}
       <Card className="p-6 bg-muted/50">
         <h4 className="font-semibold mb-3 text-foreground">Method Comparison</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="font-medium text-foreground">Detection Difference:</span>
             <p className="text-muted-foreground">
@@ -169,15 +169,6 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
             <p className="text-muted-foreground">
               {((metrics.method2PapersWithSelfCitations / metrics.totalPapers) * 100).toFixed(1)}% 
               of papers contain self-citations
-            </p>
-          </div>
-          <div>
-            <span className="font-medium text-foreground">H-Index Impact:</span>
-            <p className="text-muted-foreground">
-              Method 1: {metrics.method1SelfCitationHIndex - metrics.method1HIndexWithoutSelfCitations} difference
-            </p>
-            <p className="text-muted-foreground">
-              Method 2: {metrics.method2SelfCitationHIndex - metrics.method2HIndexWithoutSelfCitations} difference
             </p>
           </div>
         </div>
