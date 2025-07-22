@@ -8,6 +8,7 @@ import { SemanticScholarService } from '@/services/semanticScholarApi';
 import { Author, Paper, SelfCitationMetrics } from '@/types/semanticScholar';
 import { GraduationCap, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 export const SelfCitationAnalyzer = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,7 @@ export const SelfCitationAnalyzer = () => {
   const [metrics, setMetrics] = useState<SelfCitationMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentAuthorId, setCurrentAuthorId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const { toast } = useToast();
 
   const handleSearch = async (authorId: string) => {
@@ -25,6 +27,7 @@ export const SelfCitationAnalyzer = () => {
     setPapers([]);
     setMetrics(null);
     setCurrentAuthorId(authorId);
+    setProgress({ current: 0, total: 0 });
 
     try {
       toast({
@@ -32,7 +35,13 @@ export const SelfCitationAnalyzer = () => {
         description: "Fetching author data and analyzing self-citations...",
       });
 
-      const result = await SemanticScholarService.analyzeSelfCitations(authorId);
+      // Custom progress callback
+      const progressCallback = (current: number, total: number) => {
+        setProgress({ current, total });
+      };
+
+      // Pass progressCallback to the service
+      const result = await SemanticScholarService.analyzeSelfCitations(authorId, progressCallback);
       
       setAuthor(result.author);
       setPapers(result.papers);
@@ -81,6 +90,16 @@ export const SelfCitationAnalyzer = () => {
       <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Search Section */}
         <AuthorSearch onSearch={handleSearch} isLoading={isLoading} />
+
+        {/* Progress Bar */}
+        {isLoading && progress.total > 0 && (
+          <div className="my-4">
+            <Progress value={Math.round((progress.current / progress.total) * 100)} />
+            <div className="text-center text-xs text-muted-foreground mt-1">
+              Fetching citations for papers: {progress.current} / {progress.total}
+            </div>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (
