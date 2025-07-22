@@ -32,6 +32,7 @@ export interface Citation {
   year: number;
   authors: Author[];
   venue?: string;
+  url?: string;
 }
 
 export interface SelfCitationMetrics {

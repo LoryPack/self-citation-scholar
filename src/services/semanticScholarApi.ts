@@ -60,7 +60,7 @@ export class SemanticScholarService {
   }
 
   static async getPaperCitations(paperId: string): Promise<Citation[]> {
-    const url = `${BASE_URL}/paper/${paperId}/citations?fields=paperId,title,year,authors,venue&limit=1000`;
+    const url = `${BASE_URL}/paper/${paperId}/citations?fields=paperId,title,year,authors,venue,url&limit=1000`;
     console.log(`[getPaperCitations] Fetching citations for paper: ${paperId}`);
     const response = await fetchWithRetry(url);
     console.log(`[getPaperCitations] Response status: ${response.status} for paper: ${paperId}`);

@@ -75,6 +75,10 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
     return `https://www.semanticscholar.org/author/${authorId}`;
   };
 
+  const getPaperUrl = (paperId: string) => {
+    return `https://www.semanticscholar.org/paper/${paperId}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -277,7 +281,27 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
                                       <h6 className="text-sm font-medium text-foreground mb-1 line-clamp-2">
-                                        {citation.title || 'Untitled'}
+                                        {citation.url ? (
+                                          <a
+                                            href={citation.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-academic transition-colors"
+                                          >
+                                            {citation.title || 'Untitled'}
+                                          </a>
+                                        ) : citation.paperId ? (
+                                          <a
+                                            href={getPaperUrl(citation.paperId)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-academic transition-colors"
+                                          >
+                                            {citation.title || 'Untitled'}
+                                          </a>
+                                        ) : (
+                                          citation.title || 'Untitled'
+                                        )}
                                       </h6>
                                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-2">
                                         {citation.year && (
