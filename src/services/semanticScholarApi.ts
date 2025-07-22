@@ -17,7 +17,7 @@ export class SemanticScholarService {
 
   static async getAuthorPapers(authorId: string): Promise<Paper[]> {
     const response = await fetch(
-      `${BASE_URL}/author/${authorId}/papers?fields=paperId,title,year,authors,venue,citationCount,referenceCount,fieldsOfStudy,url,abstract&limit=100`
+      `${BASE_URL}/author/${authorId}/papers?fields=paperId,title,year,authors,venue,citationCount,referenceCount,fieldsOfStudy,url,abstract`
     );
     
     if (!response.ok) {
