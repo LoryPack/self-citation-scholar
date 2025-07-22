@@ -150,11 +150,6 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
                     <Badge variant="outline">
                       {paper.citationCount} Total Citations
                     </Badge>
-                    {paper.fieldsOfStudy && paper.fieldsOfStudy.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {paper.fieldsOfStudy[0]}
-                      </Badge>
-                    )}
                   </div>
                 </div>
 

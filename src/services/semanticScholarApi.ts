@@ -31,6 +31,9 @@ export class SemanticScholarService {
   static async getPaperCitations(paperId: string): Promise<Citation[]> {
     console.log('Fetching citations for paper ID:', paperId);
     
+    // Add delay to respect rate limits
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     const response = await fetch(
       `${BASE_URL}/paper/${paperId}/citations?fields=paperId,title,year,authors,venue&limit=1000`
     );
@@ -38,6 +41,11 @@ export class SemanticScholarService {
     console.log('Citation API response status:', response.status, response.statusText);
     
     if (!response.ok) {
+      if (response.status === 429) {
+        console.log('Rate limited, waiting and retrying...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return this.getPaperCitations(paperId); // Retry once
+      }
       console.log('Citation API error for paper', paperId, ':', response.status);
       return [];
     }
