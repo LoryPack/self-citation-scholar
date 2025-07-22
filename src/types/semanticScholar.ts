@@ -43,12 +43,14 @@ export interface SelfCitationMetrics {
   method1AverageSelfCitationsPerPaper: number;
   method1PapersWithSelfCitations: number;
   method1SelfCitationRate: number;
+  method1HIndexWithoutSelfCitations: number;
   // Method 2: Author overlap between cited and citing papers
   method2SelfCitations: number;
   method2SelfCitationHIndex: number;
   method2AverageSelfCitationsPerPaper: number;
   method2PapersWithSelfCitations: number;
   method2SelfCitationRate: number;
+  method2HIndexWithoutSelfCitations: number;
   // Legacy fields for backward compatibility
   totalSelfCitations: number;
   selfCitationHIndex: number;

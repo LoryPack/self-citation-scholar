@@ -237,6 +237,33 @@ export class SemanticScholarService {
     const method2AverageSelfCitationsPerPaper = totalPapers > 0 ? method2SelfCitations / totalPapers : 0;
     const method2SelfCitationRate = totalCitations > 0 ? (method2SelfCitations / totalCitations) * 100 : 0;
 
+    // Calculate h-index without self-citations for both methods
+    const method1CitationsWithoutSelfCitations = papers.map(paper => 
+      Math.max(0, paper.citationCount - (paper.method1SelfCitationCount || 0))
+    ).sort((a, b) => b - a);
+    
+    let method1HIndexWithoutSelfCitations = 0;
+    for (let i = 0; i < method1CitationsWithoutSelfCitations.length; i++) {
+      if (method1CitationsWithoutSelfCitations[i] >= i + 1) {
+        method1HIndexWithoutSelfCitations = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    const method2CitationsWithoutSelfCitations = papers.map(paper => 
+      Math.max(0, paper.citationCount - (paper.method2SelfCitationCount || 0))
+    ).sort((a, b) => b - a);
+    
+    let method2HIndexWithoutSelfCitations = 0;
+    for (let i = 0; i < method2CitationsWithoutSelfCitations.length; i++) {
+      if (method2CitationsWithoutSelfCitations[i] >= i + 1) {
+        method2HIndexWithoutSelfCitations = i + 1;
+      } else {
+        break;
+      }
+    }
+
     return {
       totalPapers,
       // Method 1 metrics
@@ -245,12 +272,14 @@ export class SemanticScholarService {
       method1AverageSelfCitationsPerPaper,
       method1PapersWithSelfCitations,
       method1SelfCitationRate,
+      method1HIndexWithoutSelfCitations,
       // Method 2 metrics
       method2SelfCitations,
       method2SelfCitationHIndex,
       method2AverageSelfCitationsPerPaper,
       method2PapersWithSelfCitations,
       method2SelfCitationRate,
+      method2HIndexWithoutSelfCitations,
       // Legacy fields (using Method 1 for backward compatibility)
       totalSelfCitations: method1SelfCitations,
       selfCitationHIndex: method1SelfCitationHIndex,

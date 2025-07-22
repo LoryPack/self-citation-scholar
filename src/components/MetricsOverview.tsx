@@ -6,7 +6,8 @@ import {
   TrendingUp, 
   BarChart3,
   Target,
-  Percent
+  Percent,
+  Minus
 } from 'lucide-react';
 import { SelfCitationMetrics } from '@/types/semanticScholar';
 
@@ -60,19 +61,26 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
                 <p className="text-2xl font-bold text-citation-gold">{metrics.method1SelfCitations}</p>
                 <p className="text-xs text-muted-foreground">Self-Citations</p>
               </div>
-              <div className="text-center p-3 bg-metrics-green/5 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <TrendingUp className="h-4 w-4 text-metrics-green" />
-                </div>
-                <p className="text-2xl font-bold text-metrics-green">{metrics.method1SelfCitationHIndex}</p>
-                <p className="text-xs text-muted-foreground">H-Index</p>
-              </div>
               <div className="text-center p-3 bg-scholar-blue/5 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <BarChart3 className="h-4 w-4 text-scholar-blue" />
                 </div>
                 <p className="text-xl font-bold text-scholar-blue">{metrics.method1AverageSelfCitationsPerPaper.toFixed(1)}</p>
                 <p className="text-xs text-muted-foreground">Avg per Paper</p>
+              </div>
+              <div className="text-center p-3 bg-metrics-green/5 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="h-4 w-4 text-metrics-green" />
+                </div>
+                <p className="text-2xl font-bold text-metrics-green">{metrics.method1SelfCitationHIndex}</p>
+                <p className="text-xs text-muted-foreground">Self-Citation H-Index</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Minus className="h-4 w-4 text-orange-600" />
+                </div>
+                <p className="text-2xl font-bold text-orange-600">{metrics.method1HIndexWithoutSelfCitations}</p>
+                <p className="text-xs text-muted-foreground">H-Index without Self-Citations</p>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
@@ -105,13 +113,6 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
                 <p className="text-2xl font-bold text-citation-gold">{metrics.method2SelfCitations}</p>
                 <p className="text-xs text-muted-foreground">Self-Citations</p>
               </div>
-              <div className="text-center p-3 bg-metrics-green/5 rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <TrendingUp className="h-4 w-4 text-metrics-green" />
-                </div>
-                <p className="text-2xl font-bold text-metrics-green">{metrics.method2SelfCitationHIndex}</p>
-                <p className="text-xs text-muted-foreground">H-Index</p>
-              </div>
               <div className="text-center p-3 bg-scholar-blue/5 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <BarChart3 className="h-4 w-4 text-scholar-blue" />
@@ -119,6 +120,21 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
                 <p className="text-xl font-bold text-scholar-blue">{metrics.method2AverageSelfCitationsPerPaper.toFixed(1)}</p>
                 <p className="text-xs text-muted-foreground">Avg per Paper</p>
               </div>
+              <div className="text-center p-3 bg-metrics-green/5 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <TrendingUp className="h-4 w-4 text-metrics-green" />
+                </div>
+                <p className="text-2xl font-bold text-metrics-green">{metrics.method2SelfCitationHIndex}</p>
+                <p className="text-xs text-muted-foreground">Self-Citation H-Index</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Minus className="h-4 w-4 text-orange-600" />
+                </div>
+                <p className="text-2xl font-bold text-orange-600">{metrics.method2HIndexWithoutSelfCitations}</p>
+                <p className="text-xs text-muted-foreground">H-Index without Self-Citations</p>
+              </div>
+
               <div className="text-center p-3 bg-purple-50 rounded-lg">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Percent className="h-4 w-4 text-purple-600" />
@@ -134,7 +150,7 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
       {/* Comparison Insights */}
       <Card className="p-6 bg-muted/50">
         <h4 className="font-semibold mb-3 text-foreground">Method Comparison</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
           <div>
             <span className="font-medium text-foreground">Detection Difference:</span>
             <p className="text-muted-foreground">
@@ -153,6 +169,15 @@ export const MetricsOverview = ({ metrics }: MetricsOverviewProps) => {
             <p className="text-muted-foreground">
               {((metrics.method2PapersWithSelfCitations / metrics.totalPapers) * 100).toFixed(1)}% 
               of papers contain self-citations
+            </p>
+          </div>
+          <div>
+            <span className="font-medium text-foreground">H-Index Impact:</span>
+            <p className="text-muted-foreground">
+              Method 1: {metrics.method1SelfCitationHIndex - metrics.method1HIndexWithoutSelfCitations} difference
+            </p>
+            <p className="text-muted-foreground">
+              Method 2: {metrics.method2SelfCitationHIndex - metrics.method2HIndexWithoutSelfCitations} difference
             </p>
           </div>
         </div>
