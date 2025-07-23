@@ -4,6 +4,7 @@ import { AuthorSearch } from '@/components/AuthorSearch';
 import { AuthorProfile } from '@/components/AuthorProfile';
 import { MetricsOverview } from '@/components/MetricsOverview';
 import { PapersList } from '@/components/PapersList';
+
 import { SemanticScholarService } from '@/services/semanticScholarApi';
 import { Author, Paper, SelfCitationMetrics } from '@/types/semanticScholar';
 import { GraduationCap, AlertCircle } from 'lucide-react';
@@ -158,17 +159,31 @@ export const SelfCitationAnalyzer = () => {
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border mt-16">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          <p>
-            Powered by{' '}
-            <a 
-              href="https://www.semanticscholar.org" 
-              target="_blank" 
+          <div className="flex flex-col items-center gap-4">
+            <p>
+              Powered by{' '}
+              <a 
+                href="https://www.semanticscholar.org" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-academic hover:underline"
+              >
+                Semantic Scholar API
+              </a>
+            </p>
+            <a
+              href="https://www.buymeacoffee.com/lorenzopacq"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-academic hover:underline"
+              aria-label="Buy Me A Coffee"
             >
-              Semantic Scholar API
+              <img
+                src="https://cdn.buymeacoffee.com/buttons/v2/arial-yellow.png"
+                alt="Buy Me A Coffee"
+                style={{ height: '60px', width: '217px', objectFit: 'contain' }}
+              />
             </a>
-          </p>
+          </div>
         </div>
       </footer>
     </div>
