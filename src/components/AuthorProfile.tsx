@@ -8,13 +8,17 @@ import {
   Quote,
   TrendingUp
 } from 'lucide-react';
-import { Author } from '@/types/semanticScholar';
+import { Author, Paper } from '@/types/semanticScholar';
 
 interface AuthorProfileProps {
   author: Author;
+  papers?: Paper[];
 }
 
-export const AuthorProfile = ({ author }: AuthorProfileProps) => {
+export const AuthorProfile = ({ author, papers }: AuthorProfileProps) => {
+  // Use the actual papers count if available, otherwise fall back to API paperCount
+  const paperCount = papers ? papers.length : author.paperCount;
+
   return (
     <Card className="p-6 bg-gradient-to-r from-academic-light to-academic-light/70 border-academic/20">
       <div className="flex items-start justify-between mb-4">
@@ -58,12 +62,12 @@ export const AuthorProfile = ({ author }: AuthorProfileProps) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {author.paperCount !== undefined && (
+        {paperCount !== undefined && (
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Papers</p>
-              <p className="font-semibold text-foreground">{author.paperCount}</p>
+              <p className="font-semibold text-foreground">{paperCount}</p>
             </div>
           </div>
         )}
