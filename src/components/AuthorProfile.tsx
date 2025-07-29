@@ -1,23 +1,75 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   User, 
   ExternalLink, 
   Building, 
   FileText, 
   Quote,
-  TrendingUp
+  TrendingUp,
+  Download
 } from 'lucide-react';
-import { Author, Paper } from '@/types/semanticScholar';
+import { Author, Paper, SelfCitationMetrics } from '@/types/semanticScholar';
+import { downloadJson } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthorProfileProps {
   author: Author;
   papers?: Paper[];
+  metrics?: SelfCitationMetrics;
 }
 
-export const AuthorProfile = ({ author, papers }: AuthorProfileProps) => {
+export const AuthorProfile = ({ author, papers, metrics }: AuthorProfileProps) => {
+  const { toast } = useToast();
   // Use the actual papers count if available, otherwise fall back to API paperCount
   const paperCount = papers ? papers.length : author.paperCount;
+
+  const handleDownloadData = () => {
+    const exportData = {
+      author: {
+        authorId: author.authorId,
+        name: author.name,
+        url: author.url,
+        affiliations: author.affiliations,
+        homepage: author.homepage,
+        paperCount: paperCount,
+        citationCount: author.citationCount,
+        hIndex: author.hIndex
+      },
+      analysis: {
+        timestamp: new Date().toISOString(),
+        totalPapers: papers?.length || 0,
+        metrics: metrics
+      },
+      papers: papers?.map(paper => ({
+        paperId: paper.paperId,
+        title: paper.title,
+        year: paper.year,
+        venue: paper.venue,
+        citationCount: paper.citationCount,
+        referenceCount: paper.referenceCount,
+        fieldsOfStudy: paper.fieldsOfStudy,
+        url: paper.url,
+        abstract: paper.abstract,
+        selfCitationCount: paper.selfCitationCount,
+        method1SelfCitationCount: paper.method1SelfCitationCount,
+        method2SelfCitationCount: paper.method2SelfCitationCount,
+        authors: paper.authors.map(author => ({
+          authorId: author.authorId,
+          name: author.name
+        }))
+      })) || []
+    };
+
+    const filename = `self-citation-analysis-${author.authorId}-${new Date().toISOString().split('T')[0]}.json`;
+    downloadJson(exportData, filename);
+    
+    toast({
+      title: "Data Downloaded",
+      description: `Analysis data for ${author.name} has been downloaded as ${filename}`,
+    });
+  };
 
   return (
     <Card className="p-6 bg-gradient-to-r from-academic-light to-academic-light/70 border-academic/20">
@@ -32,17 +84,31 @@ export const AuthorProfile = ({ author, papers }: AuthorProfileProps) => {
           </div>
         </div>
         
-        {author.url && (
-          <a
-            href={author.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-academic hover:text-academic/80 text-sm"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Profile
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          {author.url && (
+            <a
+              href={author.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-academic hover:text-academic/80 text-sm"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Profile
+            </a>
+          )}
+          
+          {papers && papers.length > 0 && metrics && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadData}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download Data
+            </Button>
+          )}
+        </div>
       </div>
 
       {author.affiliations && author.affiliations.length > 0 && (

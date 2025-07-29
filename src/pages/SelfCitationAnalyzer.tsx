@@ -114,7 +114,7 @@ export const SelfCitationAnalyzer = () => {
         {author && metrics && papers.length > 0 && (
           <div className="space-y-8">
             {/* Author Profile */}
-            <AuthorProfile author={author} papers={papers} />
+            <AuthorProfile author={author} papers={papers} metrics={metrics} />
 
             {/* Metrics Overview */}
             <MetricsOverview metrics={metrics} />
