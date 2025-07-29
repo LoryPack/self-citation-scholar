@@ -36,6 +36,26 @@ export class SemanticScholarService {
     return response.json();
   }
 
+  static async getMultipleAuthors(authorIds: string[]): Promise<Author[]> {
+    console.log(`[getMultipleAuthors] Fetching ${authorIds.length} authors`);
+    const authors: Author[] = [];
+    for (let i = 0; i < authorIds.length; i++) {
+      const authorId = authorIds[i];
+      try {
+        const author = await this.getAuthor(authorId);
+        authors.push(author);
+      } catch (error) {
+        console.error(`[getMultipleAuthors] Failed to fetch author ${authorId}:`, error);
+        throw new Error(`Failed to fetch author ${authorId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      // Wait 1 second between requests to avoid API rate issues, except after the last one
+      if (i < authorIds.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    return authors;
+  }
+
   static async getAuthorPapers(authorId: string): Promise<Paper[]> {
     const limit = 100;
     let offset = 0;
@@ -56,6 +76,34 @@ export class SemanticScholarService {
       if (papers.length < limit) break; // no more pages
       offset += limit;
     }
+    return allPapers;
+  }
+
+  static async getMultipleAuthorsPapers(authorIds: string[]): Promise<Paper[]> {
+    console.log(`[getMultipleAuthorsPapers] Fetching papers for ${authorIds.length} authors`);
+    const allPapers: Paper[] = [];
+    const paperIds = new Set<string>(); // To avoid duplicates
+
+    for (const authorId of authorIds) {
+      try {
+        const papers = await this.getAuthorPapers(authorId);
+        // Filter out duplicates based on paperId
+        const uniquePapers = papers.filter(paper => {
+          if (paperIds.has(paper.paperId)) {
+            return false;
+          }
+          paperIds.add(paper.paperId);
+          return true;
+        });
+        allPapers.push(...uniquePapers);
+        console.log(`[getMultipleAuthorsPapers] Added ${uniquePapers.length} unique papers from author ${authorId}`);
+      } catch (error) {
+        console.error(`[getMultipleAuthorsPapers] Failed to fetch papers for author ${authorId}:`, error);
+        throw new Error(`Failed to fetch papers for author ${authorId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    console.log(`[getMultipleAuthorsPapers] Total unique papers: ${allPapers.length}`);
     return allPapers;
   }
 
@@ -144,16 +192,28 @@ export class SemanticScholarService {
     return results;
   }
 
-  static async analyzeSelfCitations(authorId: string, progressCallback?: (current: number, total: number) => void): Promise<{
+  static async analyzeSelfCitations(authorIds: string | string[], progressCallback?: (current: number, total: number) => void): Promise<{
     author: Author;
     papers: Paper[];
     metrics: SelfCitationMetrics;
+    originalAuthors?: Author[];
   }> {
-    console.log(`[analyzeSelfCitations] Starting analysis for author: ${authorId}`);
-    const author = await this.getAuthor(authorId);
-    console.log(`[analyzeSelfCitations] Author fetched: ${author.name}`);
-    const papers = await this.getAuthorPapers(authorId);
+    // Handle both single author ID (string) and multiple author IDs (array)
+    const authorIdArray = Array.isArray(authorIds) ? authorIds : [authorIds];
+    console.log(`[analyzeSelfCitations] Starting analysis for ${authorIdArray.length} author(s): ${authorIdArray.join(', ')}`);
+
+    // Get all authors
+    const authors = await this.getMultipleAuthors(authorIdArray);
+    console.log(`[analyzeSelfCitations] Authors fetched: ${authors.map(a => a.name).join(', ')}`);
+
+    // Create a combined author object
+    const combinedAuthor = this.combineAuthors(authors);
+    console.log(`[analyzeSelfCitations] Combined author: ${combinedAuthor.name}`);
+
+    // Get all papers from all authors
+    const papers = await this.getMultipleAuthorsPapers(authorIdArray);
     console.log(`[analyzeSelfCitations] Papers fetched: ${papers.length}`);
+
     let processed = 0;
     // Batch process citation requests (e.g., 1 at a time)
     const analyzedPapers = await this.batchProcess(
@@ -161,14 +221,16 @@ export class SemanticScholarService {
       async (paper, idx) => {
         console.log(`[analyzeSelfCitations] Analyzing paper: ${paper.title} (${paper.paperId})`);
         const citations = await this.getPaperCitations(paper.paperId);
-        // Method 1: Target author in citing paper
+        
+        // For multiple authors, we need to check self-citations against all author IDs
         const method1SelfCitations = citations.filter(citation => 
-          this.isMethod1SelfCitation(paper, citation, authorId)
+          authorIdArray.some(authorId => this.isMethod1SelfCitation(paper, citation, authorId))
         );
-        // Method 2: Author overlap between papers
+        
         const method2SelfCitations = citations.filter(citation => 
           this.isMethod2SelfCitation(paper, citation)
         );
+        
         processed++;
         if (progressCallback) progressCallback(processed, papers.length);
         console.log(`[analyzeSelfCitations] Paper: ${paper.title} | Total citations: ${citations.length} | Method1 self-citations: ${method1SelfCitations.length} | Method2 self-citations: ${method2SelfCitations.length}`);
@@ -183,14 +245,40 @@ export class SemanticScholarService {
       1, // batch size
       1000 // delay ms
     );
+    
     // Calculate metrics
     const metrics = this.calculateMetrics(analyzedPapers);
     console.log(`[analyzeSelfCitations] Final metrics:`, metrics);
     return {
-      author,
+      author: combinedAuthor,
       papers: analyzedPapers,
-      metrics
+      metrics,
+      originalAuthors: authors.length > 1 ? authors : undefined
     };
+  }
+
+  static combineAuthors(authors: Author[]): Author {
+    if (authors.length === 0) {
+      throw new Error('No authors provided');
+    }
+    
+    if (authors.length === 1) {
+      return authors[0];
+    }
+
+    // Combine multiple authors into a single author object
+    const combinedAuthor: Author = {
+      authorId: authors.map(a => a.authorId).join(','), // Combine IDs
+      name: authors[0].name, // Use the first author's name as primary
+      url: authors[0].url,
+      affiliations: [...new Set(authors.flatMap(a => a.affiliations || []))], // Merge unique affiliations
+      homepage: authors[0].homepage,
+      paperCount: authors.reduce((sum, a) => sum + (a.paperCount || 0), 0),
+      citationCount: authors.reduce((sum, a) => sum + (a.citationCount || 0), 0),
+      hIndex: Math.max(...authors.map(a => a.hIndex || 0))
+    };
+
+    return combinedAuthor;
   }
 
   static calculateMetrics(papers: Paper[]): SelfCitationMetrics {

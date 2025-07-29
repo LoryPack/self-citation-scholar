@@ -5,17 +5,25 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 
 interface AuthorSearchProps {
-  onSearch: (authorId: string) => void;
+  onSearch: (authorIds: string[]) => void;
   isLoading: boolean;
 }
 
 export const AuthorSearch = ({ onSearch, isLoading }: AuthorSearchProps) => {
-  const [authorId, setAuthorId] = useState('');
+  const [authorIds, setAuthorIds] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (authorId.trim()) {
-      onSearch(authorId.trim());
+    if (authorIds.trim()) {
+      // Split by comma and clean up whitespace
+      const ids = authorIds
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id.length > 0);
+      
+      if (ids.length > 0) {
+        onSearch(ids);
+      }
     }
   };
 
@@ -26,7 +34,7 @@ export const AuthorSearch = ({ onSearch, isLoading }: AuthorSearchProps) => {
           Self-Citation Analysis
         </h2>
         <p className="text-muted-foreground">
-          Enter a Semantic Scholar author ID to analyze self-citation patterns
+          Enter a Semantic Scholar author ID to analyze self-citation patterns. You can also enter multiple IDs separated by commas to combine profiles for the same author.
         </p>
       </div>
       
@@ -34,9 +42,9 @@ export const AuthorSearch = ({ onSearch, isLoading }: AuthorSearchProps) => {
         <div className="relative flex-1">
           <Input
             type="text"
-            placeholder="Author ID (e.g., 2262347)"
-            value={authorId}
-            onChange={(e) => setAuthorId(e.target.value)}
+            placeholder="Author IDs (e.g., 2262347, 1234567)"
+            value={authorIds}
+            onChange={(e) => setAuthorIds(e.target.value)}
             className="pr-10"
             disabled={isLoading}
           />
@@ -44,7 +52,7 @@ export const AuthorSearch = ({ onSearch, isLoading }: AuthorSearchProps) => {
         </div>
         <Button 
           type="submit" 
-          disabled={isLoading || !authorId.trim()}
+          disabled={isLoading || !authorIds.trim()}
           className="bg-academic hover:bg-academic/90"
         >
           {isLoading ? 'Analyzing...' : 'Analyze'}

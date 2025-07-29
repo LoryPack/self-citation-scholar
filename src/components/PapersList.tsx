@@ -16,10 +16,10 @@ import { Paper } from '@/types/semanticScholar';
 
 interface PapersListProps {
   papers: Paper[];
-  authorId: string;
+  authorIds: string[];
 }
 
-export const PapersList = ({ papers, authorId }: PapersListProps) => {
+export const PapersList = ({ papers, authorIds }: PapersListProps) => {
   const [expandedPaper, setExpandedPaper] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'year' | 'selfCitations' | 'totalCitations'>('selfCitations');
 
@@ -45,16 +45,19 @@ export const PapersList = ({ papers, authorId }: PapersListProps) => {
       return false;
     }
 
-    const targetAuthor = paper.authors.find(author => author.authorId === authorId);
-    if (!targetAuthor) return false;
+    // Check if any of the target author IDs appear in the citing paper
+    return authorIds.some(authorId => {
+      const targetAuthor = paper.authors.find(author => author.authorId === authorId);
+      if (!targetAuthor) return false;
 
-    return citation.authors.some((author: any) => 
-      author && (
-        author.authorId === authorId || 
-        (author.name && targetAuthor.name && 
-         author.name.toLowerCase().trim() === targetAuthor.name.toLowerCase().trim())
-      )
-    );
+      return citation.authors.some((author: any) => 
+        author && (
+          author.authorId === authorId || 
+          (author.name && targetAuthor.name && 
+           author.name.toLowerCase().trim() === targetAuthor.name.toLowerCase().trim())
+        )
+      );
+    });
   };
 
   const isMethod2SelfCitation = (paper: Paper, citation: any) => {

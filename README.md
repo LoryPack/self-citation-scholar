@@ -1,4 +1,42 @@
-# Welcome to your Lovable project
+# Self-Citation Scholar
+
+A web application for analyzing self-citation patterns in academic research using the Semantic Scholar API.
+
+## Features
+
+- **Self-Citation Analysis**: Analyze self-citation patterns for academic authors
+- **Multiple Author Support**: Combine multiple Semantic Scholar author IDs for the same author
+- **Two Detection Methods**: 
+  - Method 1: Target author appears in citing paper
+  - Method 2: Author overlap between cited and citing papers
+- **Comprehensive Metrics**: H-index, citation rates, and detailed paper analysis
+- **Data Export**: Download analysis results as JSON
+
+## How to Use
+
+1. **Enter Author ID(s)**: 
+   - Enter a single Semantic Scholar author ID (e.g., `2262347`)
+   - Or enter multiple author IDs separated by commas (e.g., `2262347, 1234567, 8901234`)
+   
+2. **Multiple Author IDs**: 
+   - Useful when Semantic Scholar has split an author's profile into multiple IDs
+   - The system will combine all papers from the specified author IDs
+   - Self-citation detection works across all combined profiles
+
+3. **View Results**:
+   - Author profile with combined metrics
+   - Self-citation analysis with two detection methods
+   - Detailed paper list with citation breakdown
+   - Download complete analysis data
+
+## Why Multiple Author IDs?
+
+Semantic Scholar sometimes splits a single author's publications across multiple author IDs due to:
+- Name variations
+- Different institutional affiliations
+- Data inconsistencies
+
+This feature allows you to combine these split profiles for a complete analysis of an author's self-citation patterns.
 
 ## Project info
 
@@ -59,6 +97,7 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Semantic Scholar API
 
 ## How can I deploy this project?
 

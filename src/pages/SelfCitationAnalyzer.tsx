@@ -17,20 +17,24 @@ export const SelfCitationAnalyzer = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [metrics, setMetrics] = useState<SelfCitationMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [currentAuthorId, setCurrentAuthorId] = useState<string | null>(null);
+  const [currentAuthorIds, setCurrentAuthorIds] = useState<string[] | null>(null);
+  const [originalAuthors, setOriginalAuthors] = useState<Author[] | null>(null);
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const { toast } = useToast();
 
-  const handleSearch = async (authorId: string) => {
+  const handleSearch = async (authorIds: string[]) => {
     setIsLoading(true);
     setError(null);
     setAuthor(null);
     setPapers([]);
     setMetrics(null);
-    setCurrentAuthorId(authorId);
+    setCurrentAuthorIds(authorIds);
+    setOriginalAuthors(null);
     setProgress({ current: 0, total: 0 });
 
     try {
+      const authorCount = authorIds.length;
+      const authorText = authorCount === 1 ? 'author' : 'authors';
       toast({
         title: "Starting Analysis",
         description: "Fetching author data and analyzing self-citations...",
@@ -42,12 +46,14 @@ export const SelfCitationAnalyzer = () => {
       };
 
       // Pass progressCallback to the service
-      const result = await SemanticScholarService.analyzeSelfCitations(authorId, progressCallback);
+      const result = await SemanticScholarService.analyzeSelfCitations(authorIds, progressCallback);
       
       setAuthor(result.author);
       setPapers(result.papers);
       setMetrics(result.metrics);
+      setOriginalAuthors(result.originalAuthors || null);
 
+      const authorCountText = authorCount === 1 ? 'author' : 'authors';
       toast({
         title: "Analysis Complete",
         description: `Found ${result.metrics.totalSelfCitations} self-citations across ${result.papers.length} papers.`,
@@ -114,13 +120,13 @@ export const SelfCitationAnalyzer = () => {
         {author && metrics && papers.length > 0 && (
           <div className="space-y-8">
             {/* Author Profile */}
-            <AuthorProfile author={author} papers={papers} metrics={metrics} />
+            <AuthorProfile author={author} papers={papers} metrics={metrics} originalAuthors={originalAuthors} />
 
             {/* Metrics Overview */}
             <MetricsOverview metrics={metrics} />
 
             {/* Papers List */}
-            {currentAuthorId && <PapersList papers={papers} authorId={currentAuthorId} />}
+            {currentAuthorIds && <PapersList papers={papers} authorIds={currentAuthorIds} />}
           </div>
         )}
 
@@ -136,7 +142,7 @@ export const SelfCitationAnalyzer = () => {
                   <div className="w-8 h-8 bg-academic/10 rounded-full flex items-center justify-center text-academic font-bold mx-auto">
                     1
                   </div>
-                  <p>Enter a Semantic Scholar author ID</p>
+                  <p>Enter one or more Semantic Scholar author IDs (referred to the same author)</p>
                 </div>
                 <div className="space-y-2">
                   <div className="w-8 h-8 bg-academic/10 rounded-full flex items-center justify-center text-academic font-bold mx-auto">

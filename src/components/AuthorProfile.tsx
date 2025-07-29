@@ -8,7 +8,8 @@ import {
   FileText, 
   Quote,
   TrendingUp,
-  Download
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 import { Author, Paper, SelfCitationMetrics } from '@/types/semanticScholar';
 import { downloadJson } from '@/lib/utils';
@@ -18,12 +19,25 @@ interface AuthorProfileProps {
   author: Author;
   papers?: Paper[];
   metrics?: SelfCitationMetrics;
+  originalAuthors?: Author[];
 }
 
-export const AuthorProfile = ({ author, papers, metrics }: AuthorProfileProps) => {
+export const AuthorProfile = ({ author, papers, metrics, originalAuthors }: AuthorProfileProps) => {
   const { toast } = useToast();
   // Use the actual papers count if available, otherwise fall back to API paperCount
   const paperCount = papers ? papers.length : author.paperCount;
+
+  // Parse author IDs and check for name differences
+  const authorIds = author.authorId.split(',').map(id => id.trim());
+  const hasMultipleIds = authorIds.length > 1;
+  
+  // Check for name differences using original authors data
+  const hasNameDifferences = originalAuthors && originalAuthors.length > 1 && 
+    originalAuthors.some(author => author.name !== originalAuthors[0].name);
+
+  const getAuthorUrl = (authorId: string) => {
+    return `https://www.semanticscholar.org/author/${authorId}`;
+  };
 
   const handleDownloadData = () => {
     const exportData = {
@@ -80,23 +94,39 @@ export const AuthorProfile = ({ author, papers, metrics }: AuthorProfileProps) =
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground">{author.name}</h2>
-            <p className="text-sm text-muted-foreground">Author ID: {author.authorId}</p>
+            <div className="text-sm text-muted-foreground">
+              {hasMultipleIds ? (
+                <div>
+                  <span>Author IDs: </span>
+                  {authorIds.map((id, index) => (
+                    <span key={id}>
+                      <a
+                        href={getAuthorUrl(id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-academic hover:text-academic/80 hover:underline"
+                      >
+                        {id}
+                      </a>
+                      {index < authorIds.length - 1 && <span>, </span>}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span>Author ID: <a
+                  href={getAuthorUrl(authorIds[0])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-academic hover:text-academic/80 hover:underline"
+                >
+                  {authorIds[0]}
+                </a></span>
+              )}
+            </div>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
-          {author.url && (
-            <a
-              href={author.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-academic hover:text-academic/80 text-sm"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Profile
-            </a>
-          )}
-          
           {papers && papers.length > 0 && metrics && (
             <Button
               variant="outline"
@@ -110,6 +140,28 @@ export const AuthorProfile = ({ author, papers, metrics }: AuthorProfileProps) =
           )}
         </div>
       </div>
+
+      {/* Warning about name differences */}
+      {hasNameDifferences && originalAuthors && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <div className="text-sm text-yellow-800">
+              <div className="font-medium mb-1">Note: The combined author IDs have different names:</div>
+              <div className="space-y-1">
+                {originalAuthors.map((originalAuthor, index) => (
+                  <div key={originalAuthor.authorId} className="text-xs">
+                    • {originalAuthor.name} (ID: {originalAuthor.authorId})
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-xs">
+                This may indicate different authors or name variations. Please verify these are the same person.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {author.affiliations && author.affiliations.length > 0 && (
         <div className="mb-4">
