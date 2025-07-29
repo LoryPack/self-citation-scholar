@@ -248,7 +248,15 @@ export class SemanticScholarService {
     
     // Calculate metrics
     const metrics = this.calculateMetrics(analyzedPapers);
+    
+    // Calculate H-index from the combined papers
+    // This ensures the H-index is computed correctly when multiple author IDs are provided
+    const calculatedHIndex = this.calculateHIndex(analyzedPapers);
+    combinedAuthor.hIndex = calculatedHIndex;
+    
     console.log(`[analyzeSelfCitations] Final metrics:`, metrics);
+    console.log(`[analyzeSelfCitations] Calculated H-index from combined papers:`, calculatedHIndex);
+    
     return {
       author: combinedAuthor,
       papers: analyzedPapers,
@@ -275,10 +283,30 @@ export class SemanticScholarService {
       homepage: authors[0].homepage,
       paperCount: authors.reduce((sum, a) => sum + (a.paperCount || 0), 0),
       citationCount: authors.reduce((sum, a) => sum + (a.citationCount || 0), 0),
-      hIndex: Math.max(...authors.map(a => a.hIndex || 0))
+      // Note: hIndex will be calculated later based on the combined papers
+      hIndex: 0
     };
 
     return combinedAuthor;
+  }
+
+  static calculateHIndex(papers: Paper[]): number {
+    // Sort papers by citation count in descending order
+    const sortedCitations = papers
+      .map(paper => paper.citationCount)
+      .sort((a, b) => b - a);
+    
+    // Calculate H-index: the largest number h such that h papers have at least h citations each
+    let hIndex = 0;
+    for (let i = 0; i < sortedCitations.length; i++) {
+      if (sortedCitations[i] >= i + 1) {
+        hIndex = i + 1;
+      } else {
+        break;
+      }
+    }
+    
+    return hIndex;
   }
 
   static calculateMetrics(papers: Paper[]): SelfCitationMetrics {

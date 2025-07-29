@@ -6,11 +6,14 @@ A web application for analyzing self-citation patterns in academic research usin
 
 - **Self-Citation Analysis**: Analyze self-citation patterns for academic authors
 - **Multiple Author Support**: Combine multiple Semantic Scholar author IDs for the same author
+- **Accurate H-index Calculation**: H-index is computed from scratch when multiple author IDs are provided, ensuring accurate representation of academic impact
 - **Two Detection Methods**: 
   - Method 1: Target author appears in citing paper
   - Method 2: Author overlap between cited and citing papers
 - **Comprehensive Metrics**: H-index, citation rates, and detailed paper analysis
 - **Data Export**: Download analysis results as JSON
+- **Progress Tracking**: Real-time progress updates during analysis
+- **Error Handling**: Robust error handling with retry logic for API rate limits
 
 ## How to Use
 
@@ -37,6 +40,22 @@ Semantic Scholar sometimes splits a single author's publications across multiple
 - Data inconsistencies
 
 This feature allows you to combine these split profiles for a complete analysis of an author's self-citation patterns.
+
+**Important Note**: When multiple author IDs are provided, the H-index is recalculated from scratch based on the combined list of papers. This ensures the H-index accurately reflects the author's academic impact across all their publications, rather than simply taking the maximum of individual H-indices.
+
+## Recent Updates
+
+### H-index Computation Fix
+- **Fixed**: H-index calculation when multiple author IDs are provided
+- **Before**: Used the maximum of individual H-indices from Semantic Scholar API
+- **After**: Computes H-index from scratch based on the combined list of papers
+- **Impact**: More accurate representation of academic impact across all publications
+
+### Technical Improvements
+- **API Reliability**: Enhanced error handling with exponential backoff for rate limits
+- **Progress Tracking**: Real-time progress updates during analysis
+- **Performance**: Optimized batch processing with configurable delays
+- **Logging**: Comprehensive logging for debugging and monitoring
 
 ## Project info
 
@@ -92,12 +111,10 @@ npm run dev
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-- Semantic Scholar API
+- **Frontend**: Vite, TypeScript, React
+- **UI Components**: shadcn-ui, Tailwind CSS
+- **API Integration**: Semantic Scholar API with exponential backoff retry logic
+- **Data Processing**: Custom algorithms for self-citation detection and H-index calculation
 
 ## How can I deploy this project?
 
