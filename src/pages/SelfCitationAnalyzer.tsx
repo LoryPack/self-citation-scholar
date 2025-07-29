@@ -151,6 +151,9 @@ export const SelfCitationAnalyzer = () => {
                   <p>View self-citation metrics and H-index</p>
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground mt-4">
+                Note: as the website currently uses the public SemanticScholar API, it may return NetworkErrors at period of high usage. If so, please try later.
+              </p>
             </div>
           </div>
         )}
