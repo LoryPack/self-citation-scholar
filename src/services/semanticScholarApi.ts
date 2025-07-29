@@ -24,10 +24,29 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, maxRetries
 }
 
 export class SemanticScholarService {
+  private static apiKey: string | undefined;
+
+  static setApiKey(apiKey?: string) {
+    this.apiKey = apiKey;
+  }
+
+  private static getRequestOptions(): RequestInit {
+    const options: RequestInit = {};
+    
+    if (this.apiKey) {
+      options.headers = {
+        'x-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      };
+    }
+    
+    return options;
+  }
+
   static async getAuthor(authorId: string): Promise<Author> {
     const url = `${BASE_URL}/author/${authorId}?fields=name,url,affiliations,homepage,paperCount,citationCount,hIndex`;
     console.log(`[getAuthor] Fetching author: ${authorId}`);
-    const response = await fetchWithRetry(url);
+    const response = await fetchWithRetry(url, this.getRequestOptions());
     console.log(`[getAuthor] Response status: ${response.status}`);
     if (!response.ok) {
       console.error(`[getAuthor] Error fetching author: ${authorId}, status: ${response.status}`);
@@ -63,7 +82,7 @@ export class SemanticScholarService {
     console.log(`[getAuthorPapers] Fetching papers for author: ${authorId}`);
     while (true) {
       const url = `${BASE_URL}/author/${authorId}/papers?fields=paperId,title,year,authors,venue,citationCount,referenceCount,fieldsOfStudy,url,abstract&limit=${limit}&offset=${offset}`;
-      const response = await fetchWithRetry(url);
+      const response = await fetchWithRetry(url, this.getRequestOptions());
       console.log(`[getAuthorPapers] Response status: ${response.status} (offset: ${offset})`);
       if (!response.ok) {
         console.error(`[getAuthorPapers] Error fetching papers for author: ${authorId}, status: ${response.status}`);
@@ -110,7 +129,7 @@ export class SemanticScholarService {
   static async getPaperCitations(paperId: string): Promise<Citation[]> {
     const url = `${BASE_URL}/paper/${paperId}/citations?fields=paperId,title,year,authors,venue,url&limit=1000`;
     console.log(`[getPaperCitations] Fetching citations for paper: ${paperId}`);
-    const response = await fetchWithRetry(url);
+    const response = await fetchWithRetry(url, this.getRequestOptions());
     console.log(`[getPaperCitations] Response status: ${response.status} for paper: ${paperId}`);
     if (!response.ok) {
       if (response.status === 404) {
@@ -192,12 +211,17 @@ export class SemanticScholarService {
     return results;
   }
 
-  static async analyzeSelfCitations(authorIds: string | string[], progressCallback?: (current: number, total: number) => void): Promise<{
+  static async analyzeSelfCitations(authorIds: string | string[], progressCallback?: (current: number, total: number) => void, apiKey?: string): Promise<{
     author: Author;
     papers: Paper[];
     metrics: SelfCitationMetrics;
     originalAuthors?: Author[];
   }> {
+    // Set the API key if provided
+    if (apiKey) {
+      this.setApiKey(apiKey);
+    }
+
     // Handle both single author ID (string) and multiple author IDs (array)
     const authorIdArray = Array.isArray(authorIds) ? authorIds : [authorIds];
     console.log(`[analyzeSelfCitations] Starting analysis for ${authorIdArray.length} author(s): ${authorIdArray.join(', ')}`);

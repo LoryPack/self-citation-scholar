@@ -14,6 +14,7 @@ A web application for analyzing self-citation patterns in academic research usin
 - **Data Export**: Download analysis results as JSON
 - **Progress Tracking**: Real-time progress updates during analysis
 - **Error Handling**: Robust error handling with retry logic for API rate limits
+- **API Key Support**: Optional Semantic Scholar API key for enhanced rate limits and comprehensive analysis
 
 ## How to Use
 
@@ -21,16 +22,36 @@ A web application for analyzing self-citation patterns in academic research usin
    - Enter a single Semantic Scholar author ID (e.g., `2262347`)
    - Or enter multiple author IDs separated by commas (e.g., `2262347, 1234567, 8901234`)
    
-2. **Multiple Author IDs**: 
+2. **API Key (Optional)**:
+   - Enter your Semantic Scholar API key for enhanced rate limits and more comprehensive analysis
+   - Get your API key at [Semantic Scholar API](https://www.semanticscholar.org/product/api)
+   - Providing an API key increases rate limits and allows for more thorough data retrieval
+   
+3. **Multiple Author IDs**: 
    - Useful when Semantic Scholar has split an author's profile into multiple IDs
    - The system will combine all papers from the specified author IDs
    - Self-citation detection works across all combined profiles
 
-3. **View Results**:
+4. **View Results**:
    - Author profile with combined metrics
    - Self-citation analysis with two detection methods
    - Detailed paper list with citation breakdown
    - Download complete analysis data
+
+## API Key Benefits
+
+Using a Semantic Scholar API key provides several advantages:
+
+- **Higher Rate Limits**: Increased API call limits for faster and more comprehensive analysis
+- **More Complete Data**: Access to additional fields and metadata not available in public API
+- **Better Reliability**: Reduced likelihood of rate limiting during large analyses
+- **Enhanced Features**: Access to premium API features for more detailed analysis
+
+To get your API key:
+1. Visit [Semantic Scholar API](https://www.semanticscholar.org/product/api)
+2. Sign up for a free account
+3. Generate your API key
+4. Enter it in the application for enhanced functionality
 
 ## Why Multiple Author IDs?
 

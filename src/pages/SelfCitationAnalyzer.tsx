@@ -22,7 +22,7 @@ export const SelfCitationAnalyzer = () => {
   const [progress, setProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const { toast } = useToast();
 
-  const handleSearch = async (authorIds: string[]) => {
+  const handleSearch = async (authorIds: string[], apiKey?: string) => {
     setIsLoading(true);
     setError(null);
     setAuthor(null);
@@ -45,8 +45,8 @@ export const SelfCitationAnalyzer = () => {
         setProgress({ current, total });
       };
 
-      // Pass progressCallback to the service
-      const result = await SemanticScholarService.analyzeSelfCitations(authorIds, progressCallback);
+      // Pass progressCallback and API key to the service
+      const result = await SemanticScholarService.analyzeSelfCitations(authorIds, progressCallback, apiKey);
       
       setAuthor(result.author);
       setPapers(result.papers);
@@ -158,7 +158,7 @@ export const SelfCitationAnalyzer = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-4">
-                Note: as the website currently uses the public SemanticScholar API, it may return NetworkErrors at period of high usage. If so, please try later.
+                Note: if no API key is provided, the website uses the public SemanticScholar API, which may return NetworkErrors at period of high usage. If so, please try later.
               </p>
             </div>
           </div>
